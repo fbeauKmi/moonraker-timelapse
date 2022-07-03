@@ -72,6 +72,7 @@ class Timelapse:
         self.config: Dict[str, Any] = {
             'enabled': True,
             'mode': "layermacro",
+            'camera_type': "webcam",
             'camera': "",
             'snapshoturl': "http://localhost:8080/?action=snapshot",
             'stream_delay_compensation': 0.05,
@@ -122,14 +123,16 @@ class Timelapse:
         self.overwriteDbconfigWithConfighelper()
 
         # Read Webcam config from Database
+       
         try:
-            camUUID = self.config['camera']
-            if not self.config['camera'] == "" and not self.noWebcamDb:
-                webcamconfig = self.webcams_db[camUUID]
-                if isinstance(webcamconfig, asyncio.Future):
-                    self.parseWebcamConfig(webcamconfig.result())
-                else:
-                    self.parseWebcamConfig(webcamconfig)
+            if self.config["camera_type"] == "webcam"
+                camUUID = self.config['camera']
+                if not self.config['camera'] == "" and not self.noWebcamDb:
+                    webcamconfig = self.webcams_db[camUUID]
+                    if isinstance(webcamconfig, asyncio.Future):
+                        self.parseWebcamConfig(webcamconfig.result())
+                    else:
+                        self.parseWebcamConfig(webcamconfig)
 
         except Exception as e:
             logging.info(f"something went wrong getting Cam"
@@ -209,13 +212,14 @@ class Timelapse:
 
     async def getWebcamConfig(self) -> None:
         try:
-            camUUID = self.config['camera']
-            if not self.config['camera'] == "" and not self.noWebcamDb:
-                webcamconfig = self.webcams_db[camUUID]
-                if isinstance(webcamconfig, asyncio.Future):
-                    self.parseWebcamConfig(await webcamconfig)
-                else:
-                    self.parseWebcamConfig(webcamconfig)
+            if self.config["camera_type"] == "webcam"
+              camUUID = self.config['camera']
+              if not self.config['camera'] == "" and not self.noWebcamDb:
+                  webcamconfig = self.webcams_db[camUUID]
+                  if isinstance(webcamconfig, asyncio.Future):
+                      self.parseWebcamConfig(await webcamconfig)
+                  else:
+                      self.parseWebcamConfig(webcamconfig)
 
         except Exception as e:
             logging.info(f"something went wrong getting"
@@ -244,13 +248,14 @@ class Timelapse:
                       f"{self.config['flip_y']}"
                       )
 
-        if not self.config['snapshoturl'].startswith('http'):
-            if not self.config['snapshoturl'].startswith('/'):
-                self.config['snapshoturl'] = "http://localhost/" + \
-                                             self.config['snapshoturl']
-            else:
-                self.config['snapshoturl'] = "http://localhost" + \
-                                             self.config['snapshoturl']
+        if self.config["camera_type"] == "webcam"
+          if not self.config['snapshoturl'].startswith('http'):
+              if not self.config['snapshoturl'].startswith('/'):
+                  self.config['snapshoturl'] = "http://localhost/" + \
+                                               self.config['snapshoturl']
+              else:
+                  self.config['snapshoturl'] = "http://localhost" + \
+                                               self.config['snapshoturl']
 
     async def webrequest_lastframeinfo(self,
                                        webrequest: WebRequest
@@ -442,16 +447,25 @@ class Timelapse:
         self.hyperlapserunning = False
 
     async def newframe(self) -> None:
-        # make sure webcamconfig is uptodate before grabbing a new frame
-        await self.getWebcamConfig()
-
+        
         self.framecount += 1
         framefile = "frame" + str(self.framecount).zfill(6) + ".jpg"
-        cmd = "wget " + self.config['snapshoturl'] + " -O " \
-              + self.temp_dir + framefile
+        
+        if self.config["camera_type"] == "webcam":
+            # make sure webcamconfig is uptodate before grabbing a new frame
+            await self.getWebcamConfig()
+            cmd = "wget " + self.config['snapshoturl'] + " -O " \
+                  + self.temp_dir + framefile
+        else :
+            #prepare commande for script based camera 
+             cmd = "sh " + self.config['snapshoturl'] + " " + self.framecount \
+                + " 0 " + self.temp_dir + " " + self.temp_dir + " "  \
+                + self.temp_dir + framefile 
+        
         self.lastframefile = framefile
+        
         logging.debug(f"cmd: {cmd}")
-
+        
         shell_cmd: SCMDComp = self.server.lookup_component('shell_command')
         scmd = shell_cmd.build_shell_command(cmd, None)
         try:
@@ -806,3 +820,4 @@ class Timelapse:
 
 def load_component(config: ConfigHelper) -> Timelapse:
     return Timelapse(config)
+
