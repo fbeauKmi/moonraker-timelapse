@@ -14,9 +14,9 @@ then
 fi
 
 # send commands to SONY Camera
-STOPREC=$(sh /home/pi/scripts/FDR-command.sh stopMovieRec) 
-SHOOTMODE=$(sh /home/pi/scripts/FDR-command.sh "setShootMode" \"still\") 
-PICTURE=$(sh /home/pi/scripts/FDR-command.sh "actTakePicture" | sed -e 's/.*\[\"\|\"\].*//g')
+STOPREC=$(sh ./FDR-command.sh stopMovieRec) 
+SHOOTMODE=$(sh ./FDR-command.sh "setShootMode" \"still\") 
+PICTURE=$(sh ./FDR-command.sh "actTakePicture" | sed -e 's/.*\[\"\|\"\].*//g')
 
 # copying PICTURE from camera
 
