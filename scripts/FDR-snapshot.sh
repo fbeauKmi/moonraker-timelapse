@@ -14,9 +14,10 @@ then
 fi
 
 # send commands to SONY Camera
-STOPREC=$(sh ./FDR-command.sh stopMovieRec) 
-SHOOTMODE=$(sh ./FDR-command.sh "setShootMode" \"still\") 
-PICTURE=$(sh ./FDR-command.sh "actTakePicture" | sed -e 's/.*\[\"\|\"\].*//g')
+$CDIR=$(cd `dirname $0` && pwd -P)
+STOPREC=$(sh $CDIR/FDR-command.sh stopMovieRec) 
+SHOOTMODE=$(sh $CDIR/FDR-command.sh "setShootMode" \"still\") 
+PICTURE=$(sh $CDIR/FDR-command.sh "actTakePicture" | sed -e 's/.*\[\"\|\"\].*//g')
 
 # copying PICTURE from camera
 
