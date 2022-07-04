@@ -20,7 +20,7 @@ As Octolapse do, this component use shell script to control DSLR and other camer
 
 First you should connect your camera : 
 - For DSLR you should follow the first part of [Octolapse guide](https://github.com/FormerLurker/octolapse/wiki/V0.4---Configuring-a-DSLR)
-- For SONY Camera follow my quick guide (Configure_sony_camera.md).
+- For SONY Camera follow my quick guide [Configure_sony_camera](./Configure_sony_camera.md).
 
 As I did not want to fork Mainsail too, the camera could not be set in UI settings, you should integrate those lines in `mooraker.conf`
 
