@@ -14,7 +14,7 @@ then
 fi
 
 # send commands to SONY Camera
-$CDIR=$(cd `dirname $0` && pwd -P)
+CDIR=$(cd `dirname $0` && pwd -P)
 STOPREC=$(sh $CDIR/FDR-command.sh stopMovieRec) 
 SHOOTMODE=$(sh $CDIR/FDR-command.sh "setShootMode" \"still\") 
 PICTURE=$(sh $CDIR/FDR-command.sh "actTakePicture" | sed -e 's/.*\[\"\|\"\].*//g')
