@@ -212,7 +212,7 @@ class Timelapse:
 
     async def getWebcamConfig(self) -> None:
         try:
-            if self.config["camera_type"] == "webcam"
+            if self.config["camera_type"] == "webcam":
               camUUID = self.config['camera']
               if not self.config['camera'] == "" and not self.noWebcamDb:
                   webcamconfig = self.webcams_db[camUUID]
