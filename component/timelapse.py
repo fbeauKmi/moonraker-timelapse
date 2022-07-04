@@ -248,7 +248,7 @@ class Timelapse:
                       f"{self.config['flip_y']}"
                       )
 
-        if self.config["camera_type"] == "webcam"
+        if self.config["camera_type"] == "webcam":
           if not self.config['snapshoturl'].startswith('http'):
               if not self.config['snapshoturl'].startswith('/'):
                   self.config['snapshoturl'] = "http://localhost/" + \
