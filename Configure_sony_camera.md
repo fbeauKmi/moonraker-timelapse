@@ -1,19 +1,20 @@
-# How to connect SONY camera to Raspi #
+# How to connect SONY camera to Rasberry Pi #
 
 I own a Sony FDR-AX700, this quick guide is based on my experiment.
 
 ## Requirements ##
 
 - You should be able to control your camera via your smartphone with [Sony Imaging Edge](https://imagingedge.sony.net)
-[Sony remote API](https://developer.sony.com/develop/cameras/api-information/supported-devices/) is discontinued.
-- Use SSH terminal of the Raspberry Pi
+
+[Sony remote API](https://developer.sony.com/develop/cameras/api-information/supported-devices/) is discontinued but you can grab some information one command list.
+- Know how to use SSH terminal of the Raspberry Pi
 - You should use ethernet instead of wifi to control your printer
 
 ## First connect to Camera via WIFI ##
 
-On the camera, start smartphone control and copy AP Name and password. They are generated automaticaly by the camera and do not change until you renew it.
+On the camera, start "smartphone control" and copy AP Name and password. They are generated automaticaly by the camera and do not change until you renew it.
 
-On your Raspberry Pi edit `/boot/wpa_supplicant.txt`
+On your Raspberry Pi edit `/boot/wpa_supplicant.txt` or similar file (octop-wpa-supplicant.txt, mainsailos-wpa-supplicant.txt) for your system.
 
 ```
 network={
