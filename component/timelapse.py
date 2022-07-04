@@ -457,10 +457,10 @@ class Timelapse:
             cmd = "wget " + self.config['snapshoturl'] + " -O " \
                   + self.temp_dir + framefile
         else :
-            #prepare commande for script based camera 
+            #prepare commande for script based camera (use octolapse script parameters) 
              cmd = "sh " + self.config['snapshoturl'] + " " + str(self.framecount) \
                 + " 0 " + self.temp_dir + " " + self.temp_dir + " "  \
-                + self.temp_dir + framefile 
+                + framefile + " " + self.temp_dir + framefile 
         
         self.lastframefile = framefile
         
