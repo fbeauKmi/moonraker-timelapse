@@ -6,8 +6,8 @@ I own a Sony FDR-AX700, this quick guide is based on my experiment.
 
 - You should be able to control your camera via your smartphone with [Sony Imaging Edge](https://imagingedge.sony.net)
 
-[Sony remote API](https://developer.sony.com/develop/cameras/api-information/supported-devices/) is discontinued but you can grab some information one command list.
-- Know how to use SSH terminal of the Raspberry Pi
+[Sony remote API](https://developer.sony.com/develop/cameras/api-information/supported-devices/) is discontinued but you can grab some information on commands.
+- You sould know how to use SSH terminal of Raspberry Pi
 - You should use ethernet instead of wifi to control your printer
 
 ## First connect to Camera via WIFI ##
@@ -43,8 +43,8 @@ wlan0     IEEE 802.11  ESSID:"DIRECT-AP_OF_YOUR_CAMERA"
 
 The camera is reachable via http. Most Sony cameras use as IP 192.168.122.1, if not can use [sony_camera_api](https://github.com/Bloodevil/sony_camera_api) to figure out what is you configuration
 
-Below is the script I use to command the camera, it is working with FDR-AX700. You should probably adjust SONY_CAM for your own parameters. Check http://192.168.122.1:64321/DmsRmtDesc.xml from your Pi
-and update it from `<av:X_ScalarWebAPI_ActionList_URL>` and `<av:X_ScalarWebAPI_ServiceType>`
+Below is the script I use to command the camera, it is working with FDR-AX700. You should probably adjust SONY_CAM for your own parameters. Check http://192.168.122.1:64321/DmsRmtDesc.xml from your Pi 
+and update SONY_CAM from `<av:X_ScalarWebAPI_ActionList_URL>` and `<av:X_ScalarWebAPI_ServiceType>`
 
 ```
 ## FDR-command.sh
@@ -83,7 +83,7 @@ then
 fi
 
 # send commands to SONY Camera
-STOPREC=$(sh ./FDR-command.sh stopMovieRec) #assume that camera should 
+STOPREC=$(sh ./FDR-command.sh stopMovieRec) #assume that camera should record movie and stop it
 SHOOTMODE=$(sh ./FDR-command.sh "setShootMode" \"still\")
 PICTURE=$(sh ./FDR-command.sh "actTakePicture" | sed -e 's/.*\[\"\|\"\].*//g')
 
@@ -96,3 +96,5 @@ then
 fi
 
 ```
+
+To check your script try `sh FDR-snapshot.sh 1 0 "" ./ "" ./test.jpg`
