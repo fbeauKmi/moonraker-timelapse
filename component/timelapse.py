@@ -1,6 +1,7 @@
 # Moonraker Timelapse component
 #
 # Copyright (C) 2021 Christoph Frei <fryakatkop@gmail.com>
+# minor mods 2022 fbeauKmi <discord: fboc#1751 At Voron Design server>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 from __future__ import annotations
@@ -220,7 +221,12 @@ class Timelapse:
                       self.parseWebcamConfig(await webcamconfig)
                   else:
                       self.parseWebcamConfig(webcamconfig)
-
+            elif self.config["camera_type"] == "script":
+               # confirm script location
+               self.config['snapshoturl'] = os.path.abspath(self.config['snapshoturl']) 
+               if not self.config['snapshoturl'].startswith('/home/pi/moonraker-timelapse/scripts'):
+                    raise Exception("script path forbidden")
+                     
         except Exception as e:
             logging.info(f"something went wrong getting"
                          f"Cam UUID:{camUUID} from Database. "
@@ -256,6 +262,7 @@ class Timelapse:
               else:
                   self.config['snapshoturl'] = "http://localhost" + \
                                                self.config['snapshoturl']
+  
 
     async def webrequest_lastframeinfo(self,
                                        webrequest: WebRequest
@@ -447,20 +454,20 @@ class Timelapse:
         self.hyperlapserunning = False
 
     async def newframe(self) -> None:
-        
+         # make sure webcamconfig is uptodate before grabbing a new frame
+        await self.getWebcamConfig()
+
         self.framecount += 1
         framefile = "frame" + str(self.framecount).zfill(6) + ".jpg"
-        
+
         if self.config["camera_type"] == "webcam":
-            # make sure webcamconfig is uptodate before grabbing a new frame
-            await self.getWebcamConfig()
-            cmd = "wget " + self.config['snapshoturl'] + " -O " \
+             cmd = "wget " + self.config['snapshoturl'] + " -O " \
                   + self.temp_dir + framefile
         else :
-            #prepare commande for script based camera (use octolapse script parameters) 
+            #prepare commande for script based camera (use octolapse script parameters)
              cmd = "sh " + self.config['snapshoturl'] + " " + str(self.framecount) \
                 + " 0 " + " '' " + self.temp_dir + " '' " + self.temp_dir + framefile 
-        
+
         self.lastframefile = framefile
         
         logging.debug(f"cmd: {cmd}")
