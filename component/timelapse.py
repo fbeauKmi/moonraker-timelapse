@@ -458,7 +458,7 @@ class Timelapse:
                   + self.temp_dir + framefile
         else :
             #prepare commande for script based camera 
-             cmd = "sh " + self.config['snapshoturl'] + " " + self.framecount \
+             cmd = "sh " + self.config['snapshoturl'] + " " + str(self.framecount) \
                 + " 0 " + self.temp_dir + " " + self.temp_dir + " "  \
                 + self.temp_dir + framefile 
         
