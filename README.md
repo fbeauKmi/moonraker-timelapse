@@ -6,7 +6,7 @@ Here is fork of moonraker timelapse : First attempt to get it work with sh scrip
 Learn More about...   
 https://github.com/mainsail-crew/moonraker-timelapse
 
-> CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.
+> **CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.**
 
 ## Small history of this project ##
 
