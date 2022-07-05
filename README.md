@@ -8,6 +8,8 @@ https://github.com/mainsail-crew/moonraker-timelapse
 
 > **CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.**
 
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/SUKD1InMwU8/0.jpg)](https://youtube.com/watch?v=SUKD1InMwU8 "First TimeLapse")
+
 ## Small history of this project ##
 
 I recently build a [VORON 2.4](https://www.vorondesign.com/voron2.4)  and switch my main printer from Marlin/Octoprint to klipper/mainsail. Octoprint offers many plugins, huge community, ... whatever. I used to make timelapses with a SONY FDR-AX700 camera with Octolapse, to get stabilization, and easy support for DSLR cameras.
