@@ -519,8 +519,8 @@ class Timelapse:
             # print_done
             self.printing = False
 
-            # stop hyperlapse if mode is set
-            if self.config['mode'] == "hyperlapse":
+            # stop hyperlapse if running
+            if self.hyperlapserunning:
                 ioloop = IOLoop.current()
                 ioloop.spawn_callback(self.stop_hyperlapse)
 
