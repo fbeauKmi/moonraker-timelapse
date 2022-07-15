@@ -1,7 +1,6 @@
 # Moonraker Timelapse component
 #
 # Copyright (C) 2021 Christoph Frei <fryakatkop@gmail.com>
-# minor mods 2022 fbeauKmi <discord: fboc#1751 At Voron Design server>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 from __future__ import annotations
@@ -11,6 +10,7 @@ import glob
 import re
 import shutil
 import asyncio
+import math
 from datetime import datetime
 from tornado.ioloop import IOLoop
 from zipfile import ZipFile
@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     APIComp = klippy_apis.KlippyAPI
     SCMDComp = shell_command.ShellCommandFactory
     DBComp = database.MoonrakerDatabase
-
 
 class Timelapse:
 
@@ -89,6 +88,12 @@ class Timelapse:
             'park_retract_distance': 1.0,
             'park_extrude_distance': 1.0,
             'park_time': 0.1,
+            'motion_speed' : 25,
+            'motion_mode' : "none",
+            'motion_x1' : 10,
+            'motion_y1' : 10,
+            'motion_x2' : 10,
+            'motion_y2' : 10,
             'fw_retract': False,
             'hyperlapse_cycle': 30,
             'autorender': True,
@@ -174,6 +179,8 @@ class Timelapse:
             "server:klippy_ready", self.handle_klippy_ready)
         self.server.register_remote_method(
             "timelapse_newframe", self.call_newframe)
+        self.server.register_remote_method(
+            "timelapse_motion_settings", self.call_motion_settings)
         self.server.register_remote_method(
             "timelapse_saveFrames", self.call_saveFramesZip)
         self.server.register_remote_method(
@@ -357,6 +364,8 @@ class Timelapse:
         ioloop.spawn_callback(self.stop_hyperlapse)
 
     async def setgcodevariables(self) -> None:
+        self.set_motion_pos()
+        
         gcommand = "_SET_TIMELAPSE_SETUP " \
             + f" ENABLE={self.config['enabled']}" \
             + f" VERBOSE={self.config['gcode_verbose']}" \
@@ -365,13 +374,19 @@ class Timelapse:
             + f" CUSTOM_POS_X={self.config['park_custom_pos_x']}" \
             + f" CUSTOM_POS_Y={self.config['park_custom_pos_y']}" \
             + f" CUSTOM_POS_DZ={self.config['park_custom_pos_dz']}" \
+            + f" MOTION_MODE={self.config['motion_mode']}" \
+            + f" MOTION_SPEED={self.config['motion_speed']}" \
+            + f" MOTION_X1={self.config['motion_x1']}" \
+            + f" MOTION_X2={self.config['motion_x2']}" \
+            + f" MOTION_Y1={self.config['motion_y1']}" \
+            + f" MOTION_Y2={self.config['motion_y2']}" \
             + f" TRAVEL_SPEED={self.config['park_travel_speed']}" \
             + f" RETRACT_SPEED={self.config['park_retract_speed']}" \
             + f" EXTRUDE_SPEED={self.config['park_extrude_speed']}" \
             + f" RETRACT_DISTANCE={self.config['park_retract_distance']}" \
             + f" EXTRUDE_DISTANCE={self.config['park_extrude_distance']}" \
             + f" PARK_TIME={self.config['park_time']}" \
-            + f" FW_RETRACT={self.config['fw_retract']}" \
+            + f" FW_RETRACT={self.config['fw_retract']}"
 
         logging.debug(f"run gcommand: {gcommand}")
         try:
@@ -408,7 +423,165 @@ class Timelapse:
         # capture the frame after stream delay is passed
         stream_delay = self.config['stream_delay_compensation']
         ioloop.call_later(delay=stream_delay, callback=self.newframe)
+        
 
+# Added by fbeauKmi 07/09/2022
+# called by macro to compute Toolhead pos according to current frameNb
+    def set_motion_pos(self, framec: float=-1) -> None:
+        x=0
+        y=0
+        framecount = framec if framec != -1 else float(self.framecount) 
+        if self.config['parkhead']:
+            mode = self.config['motion_mode']
+            if mode != 'none':
+                  # interpolate value between x1,y1 and x2,y2
+                  pos = (framecount % self.config['motion_speed']) / self.config['motion_speed']
+                  alpha = 0
+                  if mode == 'linear' :
+                    x_arr = [self.config['motion_x1'],
+                            self.config['motion_x2'],
+                            self.config['motion_x1']]
+                    y_arr = [self.config['motion_y1'],
+                            self.config['motion_y2'],
+                            self.config['motion_y1']]
+                    pos_arr = [0,0.8,1]
+                    
+                    new_pos = self.interp(x_arr,y_arr,pos_arr,pos)
+                    x = new_pos['x']
+                    y = new_pos['y']
+                    
+                  if mode == 'star':
+                    x_arr = [.8*self.config['motion_x1'] + .2*self.config['motion_x2'],
+                            self.config['motion_x2'],
+                            self.config['motion_x1'],
+                            .2*self.config['motion_x1'] + .8*self.config['motion_x2'],
+                            .5*self.config['motion_x1'] + .5*self.config['motion_x2'],
+                            .8*self.config['motion_x1'] + .2*self.config['motion_x2']]
+                            
+                    y_arr = [self.config['motion_y1'],
+                            .6*self.config['motion_y1']+.4*self.config['motion_y2'],
+                            .6*self.config['motion_y1']+.4*self.config['motion_y2'],
+                            self.config['motion_y1'],
+                            self.config['motion_y2'],
+                            self.config['motion_y1']]
+                    pos_arr = [0,0.2,0.4,0.6,0.8,1]
+                    
+                    new_pos = self.interp(x_arr,y_arr,pos_arr,pos)
+                    x = new_pos['x']
+                    y = new_pos['y']
+                    
+                  # draw an ellipse path within x1,y1 and x2,y2
+                  elif mode == 'ellipse' or mode == 'orbital':
+                      center_x = (self.config['motion_x2'] + self.config['motion_x1'] ) / 2 
+                      center_y = (self.config['motion_y2'] + self.config['motion_y1'] ) / 2
+                      
+                      amp_x = (self.config['motion_x2'] - self.config['motion_x1'] ) / 2
+                      amp_y = (self.config['motion_y2'] - self.config['motion_y1'] ) / 2
+                      
+                      alpha = pos * 2 *  math.pi
+                      x= (math.cos(alpha) * amp_x) + center_x
+                      y= (math.sin(alpha) *amp_y) + center_y
+
+                  
+                  ioloop = IOLoop.current()
+                  ioloop.spawn_callback(self.set_motion_position, x, y)
+                  
+                  logging.info(f"position: mode {mode} alpha {alpha} framecount {framecount} X {x} Y {y}")
+            else:
+                logging.info("Motion_Mode is set to None: no movement to do"
+                              )
+        else:
+           logging.info("PARK_HEAD macro ignored parking is disabled")
+
+# Added by fbeauKmi 07/11/2022
+# Linear interpolation
+    def interp(self, x_array:[float],y_array:[float],pos_array:[float],pos:float) -> Dict[str, Any]:
+        try:
+          # validate inputs
+          if len(x_array) != len(y_array) or len(x_array) != len(pos_array):
+                raise Exception("Arrays X Y Pos should be the same length")
+          if pos > 1  or pos < 0:
+                raise Exception("pos value should be within [0,1] range")
+          tmp_pos_array = pos_array
+          tmp_pos_array.sort()
+          if tmp_pos_array != pos_array:
+                raise Exception("pos_array values should be ordered") 
+                
+          #determine target_interval
+          target_array=0
+          for i,cpos in enumerate(pos_array):
+            if cpos < pos:
+                target_array = i
+            if cpos > 1  or cpos < 0:
+                raise Exception("pos_array values should be within [0,1] range")
+          
+          x1 = x_array[target_array]
+          y1 = y_array[target_array]
+          x2 = x_array[target_array+1]
+          y2 = y_array[target_array+1]
+          
+          target_pos = (pos - pos_array[target_array])/(pos_array[target_array+1] - pos_array[target_array])
+          
+          target_x = x1 + (x2 - x1) * target_pos
+          target_y = y1 + (y2 - y1) * target_pos
+          
+          return  {'x':target_x,'y':target_y}
+        
+        except Exception as e:
+           logging.exception(f"Error getting motion pos "
+                         f"Exception: {e}")
+ 
+# Added by fbeauKmi 07/09/2022
+# return compute pos to the macro    
+    async def set_motion_position(self, x: float, y: float) -> None:
+          
+          gcommand = "SET_GCODE_VARIABLE " \
+                     + "MACRO=TIMELAPSE_TAKE_FRAME" \
+                     + f" VARIABLE=motion_pos VALUE=\"{{'x' : {x:.5f}, " \
+                     + f" 'y' : {y:.5f} }}\""
+          logging.debug(f"run gcommand: {gcommand}")
+          try:
+            await self.klippy_apis.run_gcode(gcommand)
+            logging.info(f"run gcommand: {gcommand}")
+          except self.server.error:
+              msg = f"Error executing GCode {gcommand}"
+              logging.exception(msg)
+
+ # Added by fbeauKmi 07/09/2022
+ # called by macro to store motion config in DB
+  
+    async def call_motion_settings(self, motion : Dict[str, Any] ) -> None:
+        if self.config['parkpos'] == 'custom':
+           allowedsetting = ['mode', 'speed','x1','y1','x2','y2']
+           for setting in motion:
+              if setting in allowedsetting:
+                  settingval = motion[setting]
+                  setting = "motion_" + str(setting)
+                  settingtype=type(self.config[setting])
+                  if settingtype == str:
+                      settingvalue = settingval
+                  elif settingtype == bool:
+                      settingvalue = bool(settingval)
+                  elif settingtype == int:
+                      settingvalue = int(settingval)
+                  elif settingtype == float:
+                      settingvalue = float(settingval)
+                  else:
+                      continue
+                  self.config[setting] = settingvalue
+                  
+                  self.database.insert_item(
+                          "timelapse",
+                        f"config.{setting}",
+                        settingvalue
+                    )
+                  
+                  self.set_motion_pos()  
+                              
+        else:
+           logging.info("PARK_POS must be CUSTOM, settings not done")
+        
+        
     async def release_parkedhead(self) -> None:
         gcommand = "SET_GCODE_VARIABLE " \
             + "MACRO=TIMELAPSE_TAKE_FRAME " \
@@ -465,8 +638,9 @@ class Timelapse:
                   + self.temp_dir + framefile
         else :
             #prepare commande for script based camera (use octolapse script parameters)
-             cmd = "sh " + self.config['snapshoturl'] + " " + str(self.framecount) \
-                + " 0 " + " '' " + self.temp_dir + " '' " + self.temp_dir + framefile 
+             cmd = "sh " + self.config['snapshoturl'] + " " \
+                + str(self.framecount) + " 0 " + " '' " + self.temp_dir \
+                + " '' " + self.temp_dir + framefile 
 
         self.lastframefile = framefile
         
@@ -486,6 +660,9 @@ class Timelapse:
                 'framefile': framefile,
                 'status': 'success'
             })
+# set custom postion for next shot            
+            self.set_motion_pos(self.framecount+1)
+            
         else:
             logging.info(f"getting newframe failed: {cmd}")
             self.framecount -= 1
@@ -509,6 +686,9 @@ class Timelapse:
             # print_started
             self.cleanup()
             self.printing = True
+          
+            # set custom position at startup
+            self.set_motion_pos(0)
 
             # start hyperlapse if mode is set
             if self.config['mode'] == "hyperlapse":
@@ -519,8 +699,8 @@ class Timelapse:
             # print_done
             self.printing = False
 
-            # stop hyperlapse if running
-            if self.hyperlapserunning:
+            # stop hyperlapse if mode is set
+            if self.config['mode'] == "hyperlapse":
                 ioloop = IOLoop.current()
                 ioloop.spawn_callback(self.stop_hyperlapse)
 
@@ -826,4 +1006,3 @@ class Timelapse:
 
 def load_component(config: ConfigHelper) -> Timelapse:
     return Timelapse(config)
-
