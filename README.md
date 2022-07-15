@@ -6,6 +6,14 @@ Here is fork of moonraker timelapse : First attempt to get it work with sh scrip
 Learn More about...   
 https://github.com/mainsail-crew/moonraker-timelapse
 
+## Experimental : simulate toolhead motion ##
+macro TIMELAPSE_MOTION_SETTINGS allows to give 'motion' to the toolhead.
+
+To give motion, the following paramters must be set:
+MOTION_MODE = none(default), linear (go and back between 2 points), ellipse (draw an ellipse in 2 points area), star (draw a star)
+MOTION_SPEED = number of frames for full motion
+X1, Y1 and X2, Y2 = coords of the motion raea 
+
 > **CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.**
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/SUKD1InMwU8/0.jpg)](https://youtube.com/watch?v=SUKD1InMwU8 "First TimeLapse")
