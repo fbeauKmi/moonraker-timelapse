@@ -12,7 +12,9 @@ macro TIMELAPSE_MOTION_SETTINGS allows to give 'motion' to the toolhead.
 To give motion, the following paramters must be set:
 MOTION_MODE = none(default), linear (go and back between 2 points), ellipse (draw an ellipse in 2 points area), star (draw a star)
 MOTION_SPEED = number of frames for full motion
-X1, Y1 and X2, Y2 = coords of the motion raea 
+X1, Y1 and X2, Y2 = coords of the motion area 
+
+MOTION_MODE works only if PARK_POS is set to ``custom``
 
 > **CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.**
 
