@@ -481,7 +481,7 @@ class Timelapse:
                           mod_amp =  (3 + math.sin(1.2 * alpha))/4
                           amp_x = mod_amp * amp_x
                           amp_y = mod_amp * amp_y
-                      elif mode == 'flower':     s
+                      elif mode == 'flower':
                           mod_amp = math.sin(1.5 * alpha)
                           amp_x = mod_amp * amp_x
                           amp_y = mod_amp * amp_y
