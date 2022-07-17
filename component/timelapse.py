@@ -185,6 +185,8 @@ class Timelapse:
             "timelapse_saveFrames", self.call_saveFramesZip)
         self.server.register_remote_method(
             "timelapse_render", self.call_render)
+        self.server.register_remote_method(
+            "timelapse_cleanup", self.cleanup)
         self.server.register_endpoint(
             "/machine/timelapse/render", ['POST'], self.render)
         self.server.register_endpoint(
