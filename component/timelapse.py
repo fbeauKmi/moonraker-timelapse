@@ -437,52 +437,58 @@ class Timelapse:
                   # interpolate value between x1,y1 and x2,y2
                   pos = (framecount % self.config['motion_speed']) / self.config['motion_speed']
                   alpha = 0
-                  if mode == 'linear' :
-                    x_arr = [self.config['motion_x1'],
-                            self.config['motion_x2'],
-                            self.config['motion_x1']]
-                    y_arr = [self.config['motion_y1'],
-                            self.config['motion_y2'],
-                            self.config['motion_y1']]
-                    pos_arr = [0,0.8,1]
-                    
-                    new_pos = self.interp(x_arr,y_arr,pos_arr,pos)
-                    x = new_pos['x']
-                    y = new_pos['y']
-                    
-                  if mode == 'star':
-                    x_arr = [.8*self.config['motion_x1'] + .2*self.config['motion_x2'],
-                            self.config['motion_x2'],
-                            self.config['motion_x1'],
-                            .2*self.config['motion_x1'] + .8*self.config['motion_x2'],
-                            .5*self.config['motion_x1'] + .5*self.config['motion_x2'],
-                            .8*self.config['motion_x1'] + .2*self.config['motion_x2']]
-                            
-                    y_arr = [self.config['motion_y1'],
-                            .6*self.config['motion_y1']+.4*self.config['motion_y2'],
-                            .6*self.config['motion_y1']+.4*self.config['motion_y2'],
-                            self.config['motion_y1'],
-                            self.config['motion_y2'],
-                            self.config['motion_y1']]
-                    pos_arr = [0,0.2,0.4,0.6,0.8,1]
+                  if mode == 'linear' or mode == 'star':
+                    if mode == 'linear' :
+                      x_arr = [self.config['motion_x1'],
+                              self.config['motion_x2'],
+                              self.config['motion_x1']]
+                      y_arr = [self.config['motion_y1'],
+                              self.config['motion_y2'],
+                              self.config['motion_y1']]
+                      pos_arr = [0,0.8,1]
+                                          
+                    if mode == 'star':
+                      x_arr = [.8*self.config['motion_x1'] + .2*self.config['motion_x2'],
+                              self.config['motion_x2'],
+                              self.config['motion_x1'],
+                              .2*self.config['motion_x1'] + .8*self.config['motion_x2'],
+                              .5*self.config['motion_x1'] + .5*self.config['motion_x2'],
+                              .8*self.config['motion_x1'] + .2*self.config['motion_x2']]
+                              
+                      y_arr = [self.config['motion_y1'],
+                              .6*self.config['motion_y1']+.4*self.config['motion_y2'],
+                              .6*self.config['motion_y1']+.4*self.config['motion_y2'],
+                              self.config['motion_y1'],
+                              self.config['motion_y2'],
+                              self.config['motion_y1']]
+                      pos_arr = [0,0.2,0.4,0.6,0.8,1]
                     
                     new_pos = self.interp(x_arr,y_arr,pos_arr,pos)
                     x = new_pos['x']
                     y = new_pos['y']
                     
                   # draw an ellipse path within x1,y1 and x2,y2
-                  elif mode == 'ellipse' or mode == 'orbital':
+                  elif mode == 'ellipse' or mode == 'orbital' or mode == 'flower':
                       center_x = (self.config['motion_x2'] + self.config['motion_x1'] ) / 2 
                       center_y = (self.config['motion_y2'] + self.config['motion_y1'] ) / 2
                       
                       amp_x = (self.config['motion_x2'] - self.config['motion_x1'] ) / 2
                       amp_y = (self.config['motion_y2'] - self.config['motion_y1'] ) / 2
                       
-                      alpha = pos * 2 *  math.pi
-                      x= (math.cos(alpha) * amp_x) + center_x
-                      y= (math.sin(alpha) *amp_y) + center_y
-
-                  
+                      alpha = framecount * 2 * math.pi / self.config['motion_speed']
+                      
+                      if mode == 'orbital':
+                          mod_amp =  (3 + math.sin(1.2 * alpha))/4
+                          amp_x = mod_amp * amp_x
+                          amp_y = mod_amp * amp_y
+                      elif mode == 'flower':     s
+                          mod_amp = math.sin(1.5 * alpha)
+                          amp_x = mod_amp * amp_x
+                          amp_y = mod_amp * amp_y
+                      
+                      x = (math.cos(alpha) * amp_x) + center_x
+                      y = (math.sin(alpha) * amp_y) + center_y
+                      
                   ioloop = IOLoop.current()
                   ioloop.spawn_callback(self.set_motion_position, x, y)
                   
@@ -1006,3 +1012,4 @@ class Timelapse:
 
 def load_component(config: ConfigHelper) -> Timelapse:
     return Timelapse(config)
+
