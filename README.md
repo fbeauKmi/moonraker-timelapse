@@ -10,7 +10,7 @@ https://github.com/mainsail-crew/moonraker-timelapse
 macro TIMELAPSE_MOTION_SETTINGS allows to give 'motion' to the toolhead.
 
 To give motion, the following paramters must be set:
-MOTION_MODE = none(default), linear (go and back between 2 points), ellipse (draw an ellipse in 2 points area), star (draw a star)
+MOTION_MODE = none(default), linear (go and back between 2 points), ellipse (draw an ellipse in 2 points area), star (draw a star), orbital, flower
 MOTION_SPEED = number of frames for full motion
 X1, Y1 and X2, Y2 = coords of the motion area 
 
