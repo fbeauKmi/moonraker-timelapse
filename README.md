@@ -8,7 +8,7 @@ https://github.com/mainsail-crew/moonraker-timelapse
 
 > **CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.**
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/SUKD1InMwU8/0.jpg)](https://youtube.com/watch?v=SUKD1InMwU8 "First TimeLapse")
+[![SONY AX700 Timelapse](http://img.youtube.com/vi/SUKD1InMwU8/0.jpg)](https://youtube.com/watch?v=SUKD1InMwU8 "First TimeLapse")
 
 ## Small history of this project ##
 
@@ -54,3 +54,10 @@ __X1__, __Y1__ and __X2__, __Y2__ = coords of the motion area
 
 __MOTION_MODE__ is enable only if __PARK_POS__ is set to ``custom``
 
+## MOTION_MODE ##
+
+| __linear__ | __star__ | __ellipse__ |
+| ---- | ---- | ---- |
+| ![linear](./images/linear.gif) | ![star](./images/star.gif) | ![ellipse](./images/ellipse.gif) |
+| __orbital__ | __flower__ | 
+| ![orbital](./images/orbital.gif) | ![flower](./images/flower.gif) |
