@@ -6,19 +6,6 @@ Here is fork of moonraker timelapse : First attempt to get it work with sh scrip
 Learn More about...   
 https://github.com/mainsail-crew/moonraker-timelapse
 
-## Experimental : simulate toolhead motion ##
-macro TIMELAPSE_MOTION_SETTINGS allows to give 'motion' to the toolhead.
-
-To give motion, the following paramters must be set:
-
-MOTION_MODE = none(default), linear (go and back between 2 points), ellipse (draw an ellipse in 2 points area), star (draw a star), orbital, flower
-
-MOTION_SPEED = number of frames for full motion
-
-X1, Y1 and X2, Y2 = coords of the motion area 
-
-MOTION_MODE works only if PARK_POS is set to ``custom``
-
 > **CAUTION : Use this at your own risk. As the plugin allows to run shell command on the server you may expose your printer to security issues. Be sure to understand your shell script behavior.**
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/SUKD1InMwU8/0.jpg)](https://youtube.com/watch?v=SUKD1InMwU8 "First TimeLapse")
@@ -53,4 +40,17 @@ snapshoturl: /home/pi/moonraker-timelapse/scripts/YOUR_SCRIPT.sh  #Path should b
 then restart moonraker.
 
 You should be able to take a snapshot with `TIMELAPSE_TAKE_FRAME` from Mainsail console.
+
+## Experimental : simulate toolhead motion ##
+macro __TIMELAPSE_MOTION_SETTINGS__ allows to give 'motion' to the toolhead.
+
+To allow motion, the following paramters must be set:
+
+__MOTION_MODE__ = none(default), linear (go and back between 2 points), ellipse (draw an ellipse in 2 points area), star (draw a star), orbital, flower
+
+__MOTION_SPEED__ = number of frames for full motion
+
+__X1__, __Y1__ and __X2__, __Y2__ = coords of the motion area 
+
+__MOTION_MODE__ is enable only if __PARK_POS__ is set to ``custom``
 
