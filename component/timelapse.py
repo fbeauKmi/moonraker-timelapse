@@ -471,7 +471,7 @@ class Timelapse:
                         xterm = math.cos(beta)/3
                         yterm = math.sin(beta)/3
                         cor = 3/4
-                      elif mode == 'flower'
+                      elif mode == 'flower':
                         beta = -alpha
                         alpha = alpha / 4
                         xterm = math.cos(beta)
