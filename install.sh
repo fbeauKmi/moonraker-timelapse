@@ -40,7 +40,7 @@ function stop_klipper {
         echo "Klipper service found! Stopping during Install."
         sudo systemctl stop klipper
     else
-        echo "Klipper service not found, please install Klipper first"
+        echo -e "${RED}Error:${NC} Klipper service not found, please install Klipper first\nNOTE: If you use multiple instances of klipper you need to create the symlinks manually for now! see Github issue #13 for further information"
         exit 1
     fi
 }
@@ -74,36 +74,6 @@ function link_extension {
     fi
 }
 
-function install_script {
-# Create systemd service file
-    SERVICE_FILE="${SYSTEMDDIR}/timelapse.service"
-    #[ -f $SERVICE_FILE ] && return
-    if [ -f $SERVICE_FILE ]; then
-        # Force remove
-        sudo rm -f "$SERVICE_FILE"
-    fi
-
-    echo "Installing system start script..."
-    sudo /bin/sh -c "cat > ${SERVICE_FILE}" << EOF
-[Unit]
-Description=Dummy Service for timelapse plugin
-After=moonraker.service
-Wants=moonraker.service
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/bin/bash -c "sleep 1; echo 'Restarting Klipper and Moonraker...'"
-ExecStopPost=systemctl restart klipper
-ExecStopPost=systemctl restart moonraker
-TimeoutStopSec=1s
-[Install]
-WantedBy=multi-user.target
-EOF
-# Use systemctl to enable the systemd service script
-    sudo systemctl daemon-reload
-    sudo systemctl enable timelapse.service
-}
-
 
 function restart_services {
     echo "Restarting Moonraker..."
@@ -116,7 +86,7 @@ function restart_services {
 function check_ffmpeg {
 
     if [ ! -f "$FFMPEG_BIN" ]; then
-        echo -e "${YELLOW}WARNING:${NC} FFMPEG not found in '${FFMPEG_BIN}'. Render will not be possible!\nPlease install FFMPEG running:\n\n  sudo apt install ffmpeg\n\nor specify 'ffmpeg_binary_path' in moonraker.conf in the [timelapse] section if ffmpeg is installed in a different directory, to use render functionality"
+        echo -e "${YELLOW}WARNING: FFMPEG not found in '${FFMPEG_BIN}'. Render will not be possible!${NC}\nPlease install FFMPEG running:\n\n  sudo apt install ffmpeg\n\nor specify 'ffmpeg_binary_path' in moonraker.conf in the [timelapse] section if ffmpeg is installed in a different directory, to use render functionality"
 	fi
 
 }
@@ -145,7 +115,6 @@ done
 stop_klipper
 stop_moonraker
 link_extension
-install_script
 restart_services
 check_ffmpeg
 
