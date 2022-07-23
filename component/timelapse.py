@@ -73,6 +73,7 @@ class Timelapse:
             'enabled': True,
             'mode': "layermacro",
             'camera': "",
+            'camera_type': "webcam",
             'snapshoturl': "http://localhost:8080/?action=snapshot",
             'stream_delay_compensation': 0.05,
             'gcode_verbose': False,
@@ -209,14 +210,22 @@ class Timelapse:
 
     async def getWebcamConfig(self) -> None:
         try:
-            camUUID = self.config['camera']
-            if not self.config['camera'] == "" and not self.noWebcamDb:
-                webcamconfig = self.webcams_db[camUUID]
-                if isinstance(webcamconfig, asyncio.Future):
-                    self.parseWebcamConfig(await webcamconfig)
-                else:
-                    self.parseWebcamConfig(webcamconfig)
-
+            if self.config["camera_type"] == "webcam":
+              camUUID = self.config['camera']
+              if not self.config['camera'] == "" and not self.noWebcamDb:
+                  webcamconfig = self.webcams_db[camUUID]
+                  if isinstance(webcamconfig, asyncio.Future):
+                      self.parseWebcamConfig(await webcamconfig)
+                  else:
+                      self.parseWebcamConfig(webcamconfig)
+            elif self.config["camera_type"] == "script":
+               # confirm script location
+               spath =  os.path.abspath(self.config['snapshoturl'])
+               cpath =  os.path.abspath( __file__ + '/../scripts/')
+               self.config['snapshoturl'] = spath 
+               if not spath.startswith( cpath ):
+                    raise Exception("script path forbidden")
+                     
         except Exception as e:
             logging.info(f"something went wrong getting"
                          f"Cam UUID:{camUUID} from Database. "
@@ -243,14 +252,15 @@ class Timelapse:
                       f"{self.config['flip_x']}/"
                       f"{self.config['flip_y']}"
                       )
-
-        if not self.config['snapshoturl'].startswith('http'):
-            if not self.config['snapshoturl'].startswith('/'):
-                self.config['snapshoturl'] = "http://localhost/" + \
-                                             self.config['snapshoturl']
-            else:
-                self.config['snapshoturl'] = "http://localhost" + \
-                                             self.config['snapshoturl']
+        
+        if self.config["camera_type"] == "webcam":
+            if not self.config['snapshoturl'].startswith('http'):
+                if not self.config['snapshoturl'].startswith('/'):
+                    self.config['snapshoturl'] = "http://localhost/" + \
+                                                 self.config['snapshoturl']
+                else:
+                    self.config['snapshoturl'] = "http://localhost" + \
+                                                 self.config['snapshoturl']
 
     async def webrequest_lastframeinfo(self,
                                        webrequest: WebRequest
@@ -447,8 +457,16 @@ class Timelapse:
 
         self.framecount += 1
         framefile = "frame" + str(self.framecount).zfill(6) + ".jpg"
-        cmd = "wget " + self.config['snapshoturl'] + " -O " \
-              + self.temp_dir + framefile
+        
+        if self.config["camera_type"] == "webcam":
+             cmd = "wget " + self.config['snapshoturl'] + " -O " \
+                  + self.temp_dir + framefile
+        elif self.config["camera_type"] == "script" :
+            #prepare commande for script based camera (use octolapse script parameters)
+             cmd = "sh " + self.config['snapshoturl'] + " " \
+                + str(self.framecount) + " 0 " + " '' " + self.temp_dir \
+                + " '' " + self.temp_dir + framefile
+                
         self.lastframefile = framefile
         logging.debug(f"cmd: {cmd}")
 
